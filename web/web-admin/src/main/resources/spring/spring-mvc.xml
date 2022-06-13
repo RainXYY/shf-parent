@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context
+                           https://www.springframework.org/schema/context/spring-context.xsd
+                           http://www.springframework.org/schema/mvc
+                           https://www.springframework.org/schema/mvc/spring-mvc.xsd
+                           http://www.springframework.org/schema/aop
+                           https://www.springframework.org/schema/aop/spring-aop.xsd">
+    <!--包扫描-->
+    <context:component-scan base-package="com.atguigu">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+    </context:component-scan>
+    <!--静态资源放行-->
+    <mvc:default-servlet-handler />
+    <!-- 开启mvc注解--> <!--    视图映射器--> <!--    视图解析器......-->
+    <mvc:annotation-driven>
+        <mvc:message-converters register-defaults="true">
+            <!-- 配置Fastjson支持 -->
+            <bean class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <value>text/html;charset=UTF-8</value>
+                        <value>application/json</value>
+                    </list>
+                </property>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+    <!--视图解析器-->
+    <bean id="templateResolver" class="org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver">
+        <!--配置前缀-->
+        <property name="prefix" value="/WEB-INF/templates/"></property>
+        <!--配置后缀-->
+        <property name="suffix" value=".html"></property>
+        <!--配置编码格式-->
+        <property name="characterEncoding" value="UTF-8"></property>
+        <!--设置缓存为null-->
+        <property name="cacheable" value="false"></property>
+        <!--配置模板模式,
+        HTML5:表示严格模式
+        LEGACYHTML5：表示宽松模式-->
+        <property name="templateMode" value="LEGACYHTML5"></property>
+    </bean>
+    <!--配置spring的视图解析器-->
+    <bean id="viewResolver" class="org.thymeleaf.spring5.view.ThymeleafViewResolver">
+        <!--设置编码格式-->
+        <property name="characterEncoding" value="UTF-8"></property>
+        <!--设置模板引擎-->
+        <property name="templateEngine" ref="templateEngine"/>
+    </bean>
+    <bean id="templateEngine" class="org.thymeleaf.spring5.SpringTemplateEngine">
+        <!--引用视图解析器-->
+        <property name="templateResolver" ref="templateResolver"></property>
+        <!-- 添加spring security 标签支持：sec -->
+        <property name="additionalDialects">
+            <set>
+                <bean class="org.thymeleaf.extras.springsecurity5.dialect.SpringSecurityDialect" />
+            </set>
+        </property>
+    </bean>
+    <!--访问main.html-->
+    <mvc:view-controller path="/main" view-name="frame/main"/>
+    <!--权限页面-->
+    <mvc:view-controller path="/auth" view-name="frame/auth"/>
+
+    <mvc:view-controller path="/admin/create" view-name="admin/create"/>
+    <!--访问字典首页-->
+    <mvc:view-controller path="/dict" view-name="dict/index"/>
+    <!--访问登陆页面-->
+    <mvc:view-controller path="/login" view-name="frame/login"/>
+
+    <!--文件解析器-->
+    <bean id="multipartResolver"
+          class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!-- 设定文件上传的最大值为100MB，100*1024*1024 -->
+        <property name="maxUploadSize" value="104857600" />
+        <!-- 设定文件上传时写入内存的最大值，如果小于这个参数不会生成临时文件，默认为10240 -->
+        <property name="maxInMemorySize" value="4096" />
+        <!-- 设定默认编码 -->
+        <property name="defaultEncoding" value="UTF-8"/>
+    </bean>
+
+    <!-- 声明自动为spring容器中那些配置@aspectJ切面的bean创建代理，织入切面 -->
+    <aop:aspectj-autoproxy/>
+</beans>

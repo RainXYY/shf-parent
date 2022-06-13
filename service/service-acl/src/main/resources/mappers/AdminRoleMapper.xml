@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.atguigu.mapper.AdminRoleMapper">
+<select id="findRoleIdListByAdminId" resultType="Long">
+    select role_id from acl_admin_role where admin_id=#{adminId} and is_deleted=0
+
+</select>
+
+<update id="removeAdminRole">
+    update acl_admin_role set is_deleted=1
+    where admin_id=#{adminId} and role_id in
+        <foreach collection="removeRoleIds" item="roleId" separator="," open="(" close=")">
+        #{roleId}
+        </foreach>
+</update>
+
+    <update id="update">
+        update acl_admin_role set is_deleted=#{isDeleted} where admin_id=#{adminId} and role_id=#{roleId}
+    </update>
+
+    <insert id="insert">
+        insert into acl_admin_role (role_id,admin_id) values (#{roleId},#{adminId})
+    </insert>
+
+    <sql id="columns">
+    select id,role_id,admin_id,create_time,update_time,is_deleted
+</sql>
+    <select id="findByAdminIdAndRoleId" resultType="AdminRole">
+        <include refid="columns"></include>
+        from acl_admin_role
+        where admin_id=#{adminId} and role_id=#{roleId}
+    </select>
+</mapper>

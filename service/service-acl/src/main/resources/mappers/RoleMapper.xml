@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.mapper.RoleMapper">
+    <!--复用查询的字段-->
+    <sql id="columns">
+        select id,role_name,role_code,description,create_time,update_time,is_deleted
+    </sql>
+    <select id="findAll" resultType="Role">
+        <include refid="columns"></include>
+        from acl_role
+        where is_deleted = 0
+    </select>
+
+    <!--新增角色，获取自增长主键值-->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    insert into acl_role (
+    id ,
+    role_name ,
+    role_code ,
+    description
+    ) values (
+    #{id} ,
+    #{roleName} ,
+    #{roleCode} ,
+    #{description}
+    )
+</insert>
+<!-- 根据id查询要修改的角色信息-->
+    <select id="getById" resultType="Role">
+        <include refid="columns" />
+        from acl_role
+        where
+        id = #{id}
+    </select>
+    <!-- 修改角色信息-->
+    <update id="update" >
+        update acl_role set
+        <if test="roleName != null and roleName != ''">
+            role_name = #{roleName} ,
+        </if>
+        <if test="roleCode != null and roleCode != ''">
+            role_code = #{roleCode} ,
+        </if>
+        <if test="description != null and description != ''">
+            description = #{description} ,
+        </if>
+        update_time =  now()
+        where
+        id = #{id}
+    </update>
+
+    <!--根据id删除角色  逻辑删除-->
+    <update id="delete">
+    update acl_role set
+    update_time = now() ,
+    is_deleted = 1
+    where
+    id = #{id}
+</update>
+    <!--根据条件(roleName)进行分页查询-->
+    <sql id="findPageWhere">
+        <where>
+            <if test="roleName != null and roleName != ''">
+                role_name like concat('%',#{roleName},'%')
+            </if>
+            and is_deleted=0
+        </where>
+    </sql>
+    <select id="findPage" resultType="Role">
+        <include refid="columns"/>
+        from acl_role
+        <include refid="findPageWhere"/>
+        order by id desc
+    </select>
+</mapper>

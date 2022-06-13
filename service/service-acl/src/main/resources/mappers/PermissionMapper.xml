@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.atguigu.mapper.PermissionMapper">
+    <sql id="columns">
+        select id,parent_id,name,url,code,type,sort,create_time,update_time,is_deleted
+    </sql>
+    <select id="findAll" resultType="Permission">
+        <include refid="columns"></include>
+        from acl_permission
+        where is_deleted=0
+        order by sort
+    </select>
+
+    <select id="findPermissionListByAdminId" resultType="Permission">
+        <include refid="columns"></include>
+        from acl_permission where is_deleted=0
+        and
+        id in (select permission_id from acl_role_permission where is_deleted=0 and role_id in (
+        select role_id from acl_admin_role where is_deleted=0 and admin_id=#{adminId}
+        ))
+    </select>
+
+    <insert id="insert">
+    insert into acl_permission (id,parent_id,name,url,code,type,sort,is_deleted)
+    values (#{id},#{parentId},#{name},#{url},#{code},#{type},#{sort},0)
+</insert>
+
+    <update id="delete">
+    update acl_permission
+    set is_deleted=1
+    where id=#{id}
+</update>
+
+    <select id="findCountByParentId" resultType="Long">
+        select count(0) from acl_permission where parent_id=#{id} and is_deleted=0
+    </select>
+
+    <select id="getById" resultType="Permission">
+        <include refid="columns"></include>
+        from acl_permission
+        where id=#{id} and is_deleted=0
+    </select>
+
+    <update id="update">
+        update acl_permission
+        <set>
+            <if test="parentId != null and perentId != ''">
+                parent_id=#{parentId},
+            </if>
+            <if test="name != null and name != ''">
+                name=#{name},
+            </if>
+            <if test="url != null and url != ''">
+                url=#{url},
+            </if>
+            <if test="code != null and code != ''">
+                code=#{code},
+            </if>
+            <if test="type != null and type != ''">
+                type=#{type},
+            </if>
+            <if test="sort != null and sort != ''">
+                sort=#{sort},
+            </if>
+            <if test="type != null and type != ''">
+                type=#{type},
+            </if>
+            <if test="type != null and type != ''">
+                type=#{type},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <select id="findAllCodePermission" resultType="string">
+    select code from acl_permission where is_deleted=0
+</select>
+
+    <select id="findCodePermissionListByAdminId" resultType="string">
+    SELECT code
+    FROM acl_permission
+    WHERE id IN (
+    SELECT permission_id FROM acl_role_permission WHERE role_id IN (
+    SELECT role_id FROM acl_admin_role WHERE admin_id=#{adminId} AND is_deleted=0
+    ) AND is_deleted=0
+    ) AND TYPE=2 AND is_deleted=0
+</select>
+</mapper>

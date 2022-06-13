@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.atguigu.mapper.UserFollowMapper">
+    <sql id="columns">
+        select id,user_id,house_id,create_time,update_time,is_deleted
+    </sql>
+    <select id="findByUserIdAndHouseId" resultType="UserFollow">
+        <include refid="columns"></include>
+        from user_follow where user_id=#{userId} and house_id = #{houseId}
+    </select>
+
+    <update id="update">
+        update user_follow set is_deleted=#{isDeleted},update_time=now() where id=#{id}
+    </update>
+
+    <insert id="insert">
+        insert into user_follow (user_id,house_id) values (#{userId},#{houseId})
+    </insert>
+
+    <select id="findListPage" resultType="UserFollowVo">
+        select
+        <!--查询关注表的信息-->
+        uf.id,uf.house_id,uf.update_time,
+        <!--查询房源信息-->
+        hh.build_area,hh.direction_id,hh.floor_id,hh.name,hh.unit_price,hh.default_image_url,hh.total_price,
+        <!--查询小区信息-->
+        hc.name communityName,
+        <!--查询字典信息-->
+        (select name from hse_dict where id=hh.house_type_id) houseTypeName,
+        (select name from hse_dict where id=hh.floor_id) floorName,
+        (select name from hse_dict where id=hh.direction_id) directionName
+        from user_follow uf
+        left join hse_house hh on uf.house_id=hh.id
+        left join hse_community hc on hh.community_id=hc.id
+        where
+        uf.is_deleted = 0
+        and hh.is_deleted = 0
+        and hc.is_deleted = 0
+        <!--只能查询当前用户的关注数据-->
+        and user_id=#{userId}
+
+        order by uf.id desc
+    </select>
+</mapper>

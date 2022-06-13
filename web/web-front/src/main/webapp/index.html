@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="Author" contect="http://www.webqin.net">
+    <title>尚好房</title>
+    <link rel="shortcut icon" href="./static/images/favicon.ico"/>
+    <link type="text/css" href="./static/css/css.css" rel="stylesheet"/>
+    <script type="text/javascript" src="./static/js/jquery.js"></script>
+    <script type="text/javascript" src="./static/js/js.js"></script>
+    <script src="static/js/vue.js"></script>
+    <script src="static/js/axios.js"></script>
+</head>
+
+<body>
+<div id="list">
+    <div class="header">
+        <div class="width1190">
+            <div class="fl">您好，欢迎来到尚好房！</div>
+            <div class="fr" v-if="userInfo.nickName == ''">
+                <a href="login.html">登录</a> |
+                <a href="register.html">注册</a> |
+                <a href="javascript:;">加入收藏</a> |
+                <a href="javascript:;">设为首页</a>
+            </div>
+            <div class="fr" v-else>
+                <a href="javascript:;">欢迎{{userInfo.nickName}}</a> |
+                <a href="javascript:;" @click="logout()">退出</a> |
+                <a href="follow.html">我的关注</a> |
+                <a href="javascript:;">加入收藏</a> |
+                <a href="javascript:;">设为首页</a>
+            </div>
+            <div class="clears"></div>
+        </div><!--width1190/-->
+    </div>
+    <div class="list-nav">
+        <div class="width1190">
+            <div class="list"><h3>房源分类</h3></div><!--list/-->
+            <ul class="nav">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="about.html">关于我们</a></li>
+                <li><a href="contact.html">联系我们</a></li>
+                <div class="clears"></div>
+            </ul><!--nav/-->
+            <div class="clears"></div>
+        </div><!--width1190/-->
+    </div><!--list-nav/-->
+    <div class="banner" style="background:url(./static/images/ban.jpg) center center no-repeat;"></div>
+
+    <div class="content">
+        <div class="width1190">
+            <form action="#" method="get" class="pro-search">
+                <table>
+                    <tr>
+                        <th>房源区域：</th>
+                        <td>
+                            <div style="line-height: 30px;">
+                                <a href="javascript:;" @click="searchByArea('')"
+                                   :class="houseQueryBo.areaId=='' ? 'pro-cur' : ''">不限</a>
+                                <a href="javascript:;"
+                                   v-for="item in areaList"
+                                   @click="searchByArea(item.id)"
+                                   :class="houseQueryBo.areaId==item.id ? 'pro-cur' : ''"
+                                   :key="item.id" v-text="item.name"></a>
+                            </div>
+                            <!--新增区域-->
+                            <div style="font-size: 12px;border-top:#ccc 1px dotted;">
+                                <a href="javascript:;"
+                                   @click="searchByPlate(item.id)"
+                                   :class="item.id==houseQueryBo.plateId ? 'pro-cur' : ''"
+                                   v-for="item in plateList"
+                                   :key="item.id" v-text="item.name"></a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>房型：</th>
+                        <td>
+                            <a href="javascript:;"
+                               :class="houseQueryBo.houseTypeId=='' ? 'pro-cur' : ''">不限</a>
+                            <a href="javascript:;"
+                               @click="searchByHouseType(item.id)"
+                               :class="item.id==houseQueryBo.houseTypeId ? 'pro-cur' : ''"
+                               v-for="item in houseTypeList"
+                               :key="item.id" v-text="item.name"></a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>楼层：</th>
+                        <td>
+                            <a href="javascript:;"
+                               :class="houseQueryBo.floorId=='' ? 'pro-cur' : ''">不限</a>
+                            <a href="javascript:;"
+                               @click="searchByFloor(item.id)"
+                               :class="item.id==houseQueryBo.floorId ? 'pro-cur' : ''"
+                               v-for="item in floorList" :key="item.id" v-text="item.name"></a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>建筑结构：</th>
+                        <td>
+                            <a href="javascript:;"
+                               :class="houseQueryBo.buildStructureId=='' ? 'pro-cur' : ''">不限</a>
+                            <a href="javascript:;"
+                               @click="searchByBuildStructure(item.id)"
+                               :class="item.id==houseQueryBo.buildStructureId ? 'pro-cur' : ''"
+                               v-for="item in buildStructureList" :key="item.id" v-text="item.name"></a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>装修情况：</th>
+                        <td>
+                            <a href="javascript:;"
+                               :class="houseQueryBo.decorationId='' ? 'pro-cur' : ''">不限</a>
+                            <a href="javascript:;"
+                               @click="searchByDecoration(item.id)"
+                               :class="item.id==houseQueryBo.decorationId ? 'pro-cur' : ''"
+                               v-for="item in decorationList" :key="item.id" v-text="item.name"></a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>朝向：</th>
+                        <td>
+                            <a href="javascript:;"
+                               :class="houseQueryBo.directionId=='' ? 'pro-cur' : ''">不限</a>
+                            <a href="javascript:;"
+                               @click="searchByDirection(item.id)"
+                               :class="item.id==houseQueryBo.directionId ? 'pro-cur' : ''"
+                               v-for="item in directionList" :key="item.id" v-text="item.name"></a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>房屋用途：</th>
+                        <td>
+                            <a href="javascript:;"
+                               :class="houseQueryBo.houseUseId=='' ? 'pro-cur' : ''">不限</a>
+                            <a href="javascript:;"
+                               @click="searchByHouseUse(item.id)"
+                               :class="item.id==houseQueryBo.houseUseId ? 'pro-cur' : ''"
+                               v-for="item in houseUseList" :key="item.id" v-text="item.name"></a>
+                        </td>
+                    </tr>
+                </table>
+                <div class="paixu">
+                    <strong>排序：</strong>
+                    <a href="javascript:;"
+                       @click="sortDefault()"
+                       :class="houseQueryBo.defaultSort==1 ? 'pro-cur' : ''">默认</a>
+                    <a href="javascript:;"
+                       @click="sortPrice()"
+                       :class="houseQueryBo.priceSort==1 ? 'pro-cur' : ''">价格 &or;</a>
+                    <a href="javascript:;"
+                       @click="sortTime()"
+                       :class="houseQueryBo.timeSort==1 ? 'pro-cur' : ''">最新 &or;</a>
+                </div>
+            </form><!--pro-search/-->
+        </div><!--width1190/-->
+        <div class="width1190">
+            <div class="pro-left">
+                <!--渲染分页数据-->
+                <dl v-for="item in page.list">
+                    <dt><a :href="'info.html?id='+item.id">
+                        <img :src="item.defaultImageUrl" width="286" height="188"/></a></dt>
+                    <dd>
+                        <h3><a :href="'info.html?id='+item.id" v-text="item.name"></a></h3>
+                        <div class="pro-wei">
+                            <img src="./static/images/weizhi.png" width="12" height="16"/>
+                            <strong class="red" v-text="item.communityName"></strong>
+                        </div>
+                        <div class="pro-fang">{{item.buildArea}}平 {{item.houseTypeName}} {{item.floorName}} {{item.directionName}}</div>
+                        <div class="pra-fa" >发布时间：{{item.createTimeString}}</div>
+                    </dd>
+                    <div class="price">¥ <strong v-text="item.totalPrice"></strong><span class="font12">万元</span></div>
+                    <div class="clears"></div>
+                </dl>
+            </div><!--pro-left/-->
+            <div class="pro-right">
+                <h2 class="right-title">新上房源</h2>
+                <div class="right-pro">
+                    <dl>
+                        <dt><a href="info.html"><img src="./static/images/fang8.jpg"/></a></dt>
+                        <dd>
+                            <h3><a href="info.html">中装一室一厅，楼层好，采光足，稀缺房源</a></h3>
+                            <div class="pro-fang">一室一厅 38平 南</div>
+                            <div class="right-price">90万元</div>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt><a href="info.html"><img src="./static/images/fang7.jpg"/></a></dt>
+                        <dd>
+                            <h3><a href="info.html">中装两室，楼层好，采光足，稀缺房源</a></h3>
+                            <div class="pro-fang">两室一厅 78平 南</div>
+                            <div class="right-price">130万元</div>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt><a href="info.html"><img src="./static/images/fang6.jpg"/></a></dt>
+                        <dd>
+                            <h3><a href="info.html">中装三室，楼层好，采光足，稀缺房源</a></h3>
+                            <div class="pro-fang">三室一厅 98平 南</div>
+                            <div class="right-price">190万元</div>
+                        </dd>
+                    </dl>
+                </div><!--right-pro/-->
+            </div><!--pro-right/-->
+            <div class="clears"></div>
+            <ul class="pages">
+                <!--<li>
+<a href="#">首页</a>
+</li>-->
+                <li>
+                    <a href="javascript:;" @click="findPage(page.prePage)" v-if="page.hasPreviousPage">上一页</a>
+                </li>
+                <li v-for="pageNum in page.navigatepageNums" :class="pageNum == page.pageNum ? 'page_active' : ''">
+                    <a v-if="pageNum != page.pageNum" href="javascript:;" @click="findPage(pageNum)" v-text="pageNum"></a>
+
+                    <a v-if="pageNum == page.pageNum" href="javascript:;" v-text="pageNum"></a>
+                </li>
+                <li>
+                    <a href="javascript:;" @click="findPage(page.nextPage)" v-if="page.hasNextPage">下一页</a>
+                </li>
+                <!--<li>
+<a href="#">尾页</a>
+</li>-->
+            </ul>
+        </div><!--width1190/-->
+    </div><!--content/-->
+
+    <div class="footer">
+        <div class="width1190">
+            <div class="fl"><a href="index.html"><strong>尚好房</strong></a><a href="about.html">关于我们</a><a
+                    href="contact.html">联系我们</a><a href="follow.html">个人中心</a></div>
+            <div class="fr">
+                <dl>
+                    <dt><img src="./static/images/erweima.png" width="76" height="76"/></dt>
+                    <dd>微信扫一扫<br/>房价点评，精彩发布</dd>
+                </dl>
+                <dl>
+                    <dt><img src="./static/images/erweima.png" width="76" height="76"/></dt>
+                    <dd>微信扫一扫<br/>房价点评，精彩发布</dd>
+                </dl>
+                <div class="clears"></div>
+            </div>
+            <div class="clears"></div>
+        </div><!--width1190/-->
+    </div><!--footer/-->
+    <div class="copy">Copyright@ 2020 尚好房 版权所有 沪ICP备1234567号-0&nbsp;&nbsp;&nbsp;&nbsp;技术支持：XXX</div>
+    <div class="bg100"></div>
+</div>
+<script>
+    new Vue({
+        el: "#list",
+        data: {
+            //用户信息
+            userInfo:{
+                nickName:''
+            },
+            //区域列表
+            areaList:[],
+            //房型列表
+            houseTypeList:[],
+            //楼层列表
+            floorList:[],
+            //建筑结构列表
+            buildStructureList:[],
+            //装修情况列表
+            decorationList:[],
+            //朝向列表
+            directionList:[],
+            //房屋用途列表
+            houseUseList:[],
+            //板块列表
+            plateList:[],
+            //封装搜索条件
+            houseQueryBo: {
+                //区域id
+                areaId: '',
+                //板块id
+                plateId: '',
+                //房屋类型id
+                houseTypeId: '',
+                //楼层id
+                floorId: '',
+                //建筑结构id
+                buildStructureId: '',
+                //朝向id
+                directionId: '',
+                //装修情况id
+                decorationId: '',
+                //房屋用途id
+                houseUseId: '',
+                //排序规则
+                defaultSort: 1,
+                priceSort: null,
+                timeSort: null,
+
+            },
+            //分页数据
+            page: {
+                //当前页的数据集合
+                list: [],
+                //当前页数
+                pageNum: 1,
+                //每页数据条数
+                pageSize: 2,
+                //总页数
+                pages: 1,
+                //页码列表
+                navigatepageNums: [1,2,3,4],
+                //上一页
+                prePage: 0,
+                //下一页
+                nextPage: 0,
+                //是否有上一页
+                hasPreviousPage: false,
+                //是否有下一页
+                hasNextPage: false
+            }
+        },
+        methods: {
+            fetchDictData() {
+                //获取北京的区域列表
+                axios({
+                    "url":"/dict/findDictListByParentDictCode/beijing",
+                    "method":"GET"
+                }).then(response => {
+                    this.areaList = response.data.data
+                })
+                //获取房型列表
+                axios({
+                    "url":"/dict/findDictListByParentDictCode/houseType",
+                    "method":"GET"
+                }).then(response => {
+                    this.houseTypeList = response.data.data
+                })
+                //获取楼层列表
+                axios({
+                    "url":"/dict/findDictListByParentDictCode/floor",
+                    "method":"GET"
+                }).then(response => {
+                    this.floorList = response.data.data
+                })
+                //获取建筑结构列表
+                axios({
+                    "url":"/dict/findDictListByParentDictCode/buildStructure",
+                    "method":"GET"
+                }).then(response => {
+                    this.buildStructureList = response.data.data
+                })
+                //获取装修情况列表
+                axios({
+                    "url":"/dict/findDictListByParentDictCode/decoration",
+                    "method":"GET"
+                }).then(response => {
+                    this.decorationList = response.data.data
+                })
+                //获取朝向列表
+                axios({
+                    "url":"/dict/findDictListByParentDictCode/direction",
+                    "method":"GET"
+                }).then(response => {
+                    this.directionList = response.data.data
+                })
+                //获取房屋用途列表
+                axios({
+                    "url":"/dict/findDictListByParentDictCode/houseUse",
+                    "method":"GET"
+                }).then(response => {
+                    this.houseUseList = response.data.data
+                })
+            },
+            //分页查询
+            findPage(pageNum = 1){
+                this.page.pageNum = pageNum
+                if (pageNum < 1) pageNum = 1
+                //发送异步请求获取房源分页数据
+                axios({
+                    "url":"/house/list/"+pageNum+"/"+this.page.pageSize,
+                    "method":"POST",
+                    "data":this.houseQueryBo
+                }).then(response => {
+                    this.page = response.data.data
+                })
+            },
+            //根据区域搜索
+            searchByArea(areaId){
+                //设置搜索条件
+                this.houseQueryBo.areaId = areaId
+                this.houseQueryBo.plateId = ''
+                //调用分页查询
+                this.findPage(1)
+                if (areaId == ''){
+                    this.plateList = []
+                    return
+                }
+                //获取板块列表
+                axios({
+                    "url":"/dict/findDictListByParentId/"+areaId,
+                    "method":"GET"
+                }).then(response => {
+                    this.plateList = response.data.data
+                })
+            },
+            //根据板块搜索
+            searchByPlate(plateId){
+                this.houseQueryBo.plateId = plateId
+                this.findPage(1)
+            },
+            //根据房屋类型搜索
+            searchByHouseType(houseTypeId){
+                this.houseQueryBo.houseTypeId = houseTypeId
+                this.findPage(1)
+            },
+            //根据楼层搜索
+            searchByFloor(floorId){
+                this.houseQueryBo.floorId = floorId
+                this.findPage(1)
+            },
+            //根据房屋结构搜索
+            searchByBuildStructure(buildStructureId){
+                this.houseQueryBo.buildStructureId = buildStructureId
+                this.findPage(1)
+            },
+            //根据朝向搜索
+            searchByDirection(directionId){
+                this.houseQueryBo.directionId = directionId
+                this.findPage(1)
+            },
+            //根据装修情况搜索
+            searchByDecoration(decorationId){
+                this.houseQueryBo.decorationId = decorationId
+                this.findPage(1)
+            },
+            //根据用途搜索
+            searchByHouseUse(houseUseId){
+                this.houseQueryBo.houseUseId = houseUseId
+                this.findPage(1)
+            },
+            //默认排序
+            sortDefault() {
+                this.houseQueryBo.defaultSort = 1
+                this.houseQueryBo.priceSort = null
+                this.houseQueryBo.timeSort = null
+                this.findPage(1)
+            },
+            //价格排序
+            sortPrice() {
+                this.houseQueryBo.defaultSort = null
+                this.houseQueryBo.priceSort = 1
+                this.houseQueryBo.timeSort = null
+                this.findPage(1)
+            },
+            //时间排序
+            sortTime() {
+                this.houseQueryBo.defaultSort = null
+                this.houseQueryBo.priceSort = null
+                this.houseQueryBo.timeSort = 1
+                this.findPage(1)
+            },
+            //加载用户登录的信息
+            loadUserInfo(){
+                //从sessionStorage中获取登录的用户数据
+                var userInfoString = sessionStorage.getItem("userInfo");
+                //如果获取到的登录用户数据不为空
+                if (userInfoString != null && userInfoString != '') {
+                    //将登录的用户数据转成json，赋给data中的userInfo
+                    this.userInfo = JSON.parse(userInfoString)
+                }
+            },
+            //退出登录
+            logout(){
+                axios({
+                    "url":"/userInfo/logout",
+                    "method":"GET"
+                }).then(response => {
+                    sessionStorage.removeItem("userInfo")
+                    location.href = "index.html"
+                })
+            }
+        },
+        created(){
+            //加载用户数据
+            this.loadUserInfo()
+            //初始化搜索信息
+            this.fetchDictData()
+            //加载第一页数据
+            this.findPage(1)
+        }
+    })
+</script>
+</body>
+</html>
